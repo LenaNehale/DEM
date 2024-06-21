@@ -1,0 +1,15 @@
+_target_: dem.energies.tblite_energy.TBLiteEnergy
+
+dimensionality: 207
+n_particles: 69
+data_path: "${oc.env:PROJECT_ROOT}/data/TIfV_val.npy"
+data_path_train: "${oc.env:PROJECT_ROOT}/data/TIfV_train.npy"
+data_path_val: "${oc.env:PROJECT_ROOT}/data/TIfV_val.npy"
+
+device: ${trainer.accelerator}
+
+plot_samples_epoch_period: 1
+
+data_normalization_factor: 1.0
+
+is_molecule: True

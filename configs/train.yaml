@@ -5,7 +5,7 @@
 defaults:
   - _self_
   - data: dummy
-  - energy: gmm
+  - energy: tblite
   - model: dem
   - callbacks: default
   - launcher: null
@@ -17,7 +17,7 @@ defaults:
 
   # experiment configs allow for version control of specific hyperparameters
   # e.g. best hyperparameters for given model and datamodule
-  - experiment: gmm_idem
+  - experiment: tblite_idem
 
   # config for hyperparameter optimization
   - hparams_search: null
