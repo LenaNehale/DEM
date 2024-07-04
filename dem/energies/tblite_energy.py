@@ -31,6 +31,7 @@ class TBLiteEnergy(BaseEnergyFunction):
         self._dimensionality = dimensionality
         self.n_particles = n_particles
         self.n_dims = self.dimensionality//self.n_particles
+        self.n_spatial_dim = self.n_dims
         self.data_path_train = data_path_train
         self.data_path_val = data_path_val
         self.data_path = data_path
@@ -44,6 +45,7 @@ class TBLiteEnergy(BaseEnergyFunction):
         self.plot_samples_epoch_period = plot_samples_epoch_period
         self.data_normalization_factor = data_normalization_factor
         self.xtb_accuracy = 1e4
+        self.calculator='GFN2-xTB'
         
         super().__init__(dimensionality=dimensionality, is_molecule=is_molecule)
 
@@ -59,13 +61,13 @@ class TBLiteEnergy(BaseEnergyFunction):
     def get_logrew(self,coords):
         with pipes():
             try:
-                calc = Calculator('GFN2-xTB', self.atom_ids, coords.detach().cpu().numpy()* 1.8897259886)
+                calc = Calculator(self.calculator, self.atom_ids, coords.detach().cpu().numpy()* 1.8897259886)
                 calc.set('accuracy', self.xtb_accuracy) # Default is 1
                 res = calc.singlepoint()
                 logrew = - res.get("energy")/self.T
             except RuntimeError:
-                logrew = - 1e5
-        print('log rew', logrew)
+                logrew = - 1e5/self.T
+        print('logrew', logrew)
         return  logrew
 
 
@@ -75,7 +77,7 @@ class TBLiteEnergy(BaseEnergyFunction):
     def get_gradient(self,coords):
         with pipes():
             try:
-                calc = Calculator('GFN2-xTB', self.atom_ids, coords.detach().cpu().numpy()* 1.8897259886)
+                calc = Calculator(self.calculator, self.atom_ids, coords.detach().cpu().numpy()* 1.8897259886)
                 calc.set('accuracy', self.xtb_accuracy ) # Default is 1
                 res = calc.singlepoint()
                 grad =  - torch.Tensor(res.get("gradient")/self.T).flatten()
@@ -83,6 +85,7 @@ class TBLiteEnergy(BaseEnergyFunction):
                 # Choose random gradient to perturb the configuration with non-converging energy.
                 new_coords = torch.rand(3*len(self.atom_ids))*10
                 grad = self.get_gradient(new_coords)
+            print('grad')
         return grad
 
 

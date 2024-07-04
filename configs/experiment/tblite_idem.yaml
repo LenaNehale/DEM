@@ -23,6 +23,7 @@ defaults:
 model:
   net:
     n_layers: 5
+    n_particles: 69
     hidden_nf: 128
 
   noise_schedule:
@@ -46,15 +47,21 @@ model:
     should_clip_log_rewards: False
     max_score_norm: 20
     min_log_reward: null
+  
+  buffer:
+    min_sample_length: 64
 
-  # num_samples_to_sample_from_buffer: 5120
   diffusion_scale: 0.9
-  num_samples_to_generate_per_epoch: 25
-  num_samples_to_sample_from_buffer: 10
+
+  num_init_samples: 64
+  num_estimator_mc_samples: 32
+  num_samples_to_generate_per_epoch: 32
+  num_samples_to_sample_from_buffer: 32
+  eval_batch_size: 32
 
   init_from_prior: true
 
   cfm_prior_std: 2
 
   nll_integration_method: dopri5
-  num_estimator_mc_samples: 10
+
