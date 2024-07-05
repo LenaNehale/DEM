@@ -28,11 +28,12 @@ from .components.mlp import TimeConder
 from .components.noise_schedules import BaseNoiseSchedule
 from .components.prioritised_replay_buffer import PrioritisedReplayBuffer
 from .components.scaling_wrapper import ScalingWrapper
-from .components.score_estimator import estimate_grad_Rt, wrap_for_richardsons
+from .components.score_estimator import estimate_grad_Rt, wrap_for_richardsons, get_logreward_noised_samples
 from .components.score_scaler import BaseScoreScaler
 from .components.sde_integration import integrate_sde
 from .components.sdes import VEReverseSDE
 
+import pickle
 
 def t_stratified_loss(batch_t, batch_loss, num_bins=5, loss_name=None):
     """Stratify loss by binning t."""
@@ -304,6 +305,8 @@ class DEMLitModule(LightningModule):
         self.diffusion_scale = diffusion_scale
         self.init_from_prior = init_from_prior
 
+        self.to_analyse = {'train':{'noise': [], 'x0': []}, 'test':{'noise': [], 'x0': []}}
+
     def forward(self, t: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
         """Perform a forward pass through the model `self.net`.
 
@@ -373,7 +376,7 @@ class DEMLitModule(LightningModule):
 
         predicted_score = self.forward(times, samples)
 
-        error_norms = (predicted_score - estimated_score).pow(2).mean(-1)
+        error_norms = (predicted_score - estimated_score).pow(2).mean(-1) 
 
         return self.lambda_weighter(times) * error_norms
 
@@ -401,7 +404,6 @@ class DEMLitModule(LightningModule):
                     self.energy_function.n_particles,
                     self.energy_function.n_spatial_dim,
                 )
-
             dem_loss = self.get_loss(times, noised_samples)
             # Uncomment for SM
             # dem_loss = self.get_score_loss(times, iter_samples, noised_samples)
@@ -471,7 +473,7 @@ class DEMLitModule(LightningModule):
 
         samples = self.prior.sample(num_samples)
 
-        return self.integrate(
+        return  self.integrate(
             reverse_sde=reverse_sde,
             samples=samples,
             reverse_time=True,
@@ -713,8 +715,8 @@ class DEMLitModule(LightningModule):
                 self.energy_function.n_particles,
                 self.energy_function.n_spatial_dim,
             )
-
         loss = self.get_loss(times, noised_batch).mean(-1)
+
 
         # update and log metrics
         loss_metric = self.val_loss if prefix == "val" else self.test_loss

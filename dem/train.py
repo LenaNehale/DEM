@@ -1,3 +1,4 @@
+from tblite.interface import Structure, Calculator
 from typing import Any, Dict, List, Optional, Tuple
 
 import hydra
