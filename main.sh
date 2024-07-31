@@ -8,4 +8,4 @@
 
 micromamba activate dem
 
-exec python dem/train.py experiment=tblite_idem
+exec python dem/train.py experiment=torchani_idem 
