@@ -90,7 +90,7 @@ class LennardJonesPotential(Energy):
             osc_energies = 0.5 * self._remove_mean(x).pow(2).sum(dim=(-2, -1)).view(*batch_shape)
             lj_energies = lj_energies + osc_energies * self._oscillator_scale
 
-        return lj_energies[:, None]
+        return lj_energies[:, None] if batch_shape != [1] else lj_energies[:, None][0]
 
     def _remove_mean(self, x):
         x = x.view(-1, self._n_particles, self._n_dims)

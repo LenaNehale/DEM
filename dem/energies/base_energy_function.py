@@ -15,7 +15,6 @@ class BaseEnergyFunction(ABC):
         is_molecule: Optional[bool] = False,
         normalization_min: Optional[float] = None,
         normalization_max: Optional[float] = None,
-        is_torch_diff = True
     ):
         self._dimensionality = dimensionality
 
@@ -27,7 +26,6 @@ class BaseEnergyFunction(ABC):
         self.normalization_max = normalization_max
 
         self._is_molecule = is_molecule
-        self.is_torch_diff = is_torch_diff
 
     def setup_test_set(self) -> Optional[torch.Tensor]:
         return None
@@ -127,12 +125,9 @@ class BaseEnergyFunction(ABC):
         raise NotImplementedError
 
     def score(self, samples: torch.Tensor) -> torch.Tensor:
-        if self.is_torch_diff:
-            grad_fxn = torch.func.grad(self.__call__)
-            vmapped_grad = torch.vmap(grad_fxn)
-            return vmapped_grad(samples)
-        else:
-            raise NotImplementedError
+        grad_fxn = torch.func.grad(self.__call__)
+        vmapped_grad = torch.vmap(grad_fxn)
+        return vmapped_grad(samples)
 
     def log_on_epoch_end(
         self,

@@ -4,7 +4,7 @@ import torch
 from dem.energies.base_energy_function import BaseEnergyFunction
 from dem.models.components.clipper import Clipper
 from dem.models.components.noise_schedules import BaseNoiseSchedule
-
+from einops import reduce, rearrange, repeat
 
 def wrap_for_richardsons(score_estimator):
     def _fxn(t, x, energy_function, noise_schedule, num_mc_samples):
@@ -72,7 +72,7 @@ def estimate_grad_Rt(
 ):
     if t.ndim == 0:
         t = t.unsqueeze(0).repeat(len(x))
-    '''    
+    
     #if energy_function.is_torch_diff:
     grad_fxn = torch.func.grad(log_expectation_reward, argnums=1)
     vmapped_fxn = torch.vmap(
@@ -103,9 +103,11 @@ def estimate_grad_Rt(
     weights = torch.softmax(log_rewards, dim=-1).unsqueeze(
         -1
     )  # shape : bs, num_mc_samples, 1
+    # If the energy function is of type GMM 
     grad_log_rewards = energy_function.score(
-        samples
-    )  # shape : bs, num_mc_samples, dim
+        samples.flatten(0,1)
+    ) 
+    grad_log_rewards = grad_log_rewards.unflatten(0, (len(grad_log_rewards)//num_mc_samples, num_mc_samples)) # shape : bs, num_mc_samples, dim
     
     if len(grad_log_rewards.shape) == 4: #TODO :rewrite more beautifully
         grad_log_rewards = grad_log_rewards.flatten(-2,-1) # shape : bs, num_mc_samples, dim
@@ -125,3 +127,4 @@ def estimate_grad_Rt(
         torch.abs(SK).std(),
     )
     return SK  # bs, dim
+    '''    

@@ -802,6 +802,7 @@ class DEMLitModule(LightningModule):
                 self.energy_function.n_particles,
                 self.energy_function.n_spatial_dim,
             )
+        print('eval step')
         loss, relative_loss = self.get_loss(times, noised_batch)
         loss = loss.mean(-1)
 
@@ -859,6 +860,7 @@ class DEMLitModule(LightningModule):
             )
 
         self.eval_step_outputs.append(to_log)
+        print('eval step done')
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int) -> None:
         self.eval_step("val", batch, batch_idx)
