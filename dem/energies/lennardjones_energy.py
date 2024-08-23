@@ -75,6 +75,8 @@ class LennardJonesPotential(Energy):
 
     def _energy(self, x):
         batch_shape = x.shape[: -len(self.event_shape)]
+        if batch_shape == torch.Size([]):
+            batch_shape = [1]
         x = x.view(*batch_shape, self._n_particles, self._n_dims)
 
         dists = distances_from_vectors(
@@ -84,7 +86,6 @@ class LennardJonesPotential(Energy):
         lj_energies = lennard_jones_energy_torch(dists, self._eps, self._rm)
         # lj_energies = torch.clip(lj_energies, -1e4, 1e4)
         lj_energies = lj_energies.view(*batch_shape, -1).sum(dim=-1) * self._energy_factor
-
         if self.oscillator:
             osc_energies = 0.5 * self._remove_mean(x).pow(2).sum(dim=(-2, -1)).view(*batch_shape)
             lj_energies = lj_energies + osc_energies * self._oscillator_scale

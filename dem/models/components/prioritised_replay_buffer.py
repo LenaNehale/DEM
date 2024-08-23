@@ -277,7 +277,7 @@ class SimpleBuffer:
         energy = energy.to(self.device)
         indices = (torch.arange(batch_size) + self.current_index).to(self.device) % self.max_length
         self.buffer.x[indices] = x
-        self.buffer.energy[indices] = energy
+        self.buffer.energy[indices] = energy.float()
         new_index = self.current_index + batch_size
         if not self.is_full:
             self.is_full = new_index >= self.max_length
